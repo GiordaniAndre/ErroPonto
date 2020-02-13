@@ -1,0 +1,61 @@
+from bs4 import BeautifulSoup
+import pandas as pd
+from selenium import webdriver
+import time
+from datetime import date
+from datetime import datetime
+import datetime
+
+driver = webdriver.Chrome(r'C:\Users\andre_giordani\Downloads\chromedriver_win32\chromedriver.exe')
+
+driver.get("") #insert the site
+
+username = driver.find_element_by_id("fieldUser")
+username.clear()
+username.send_keys("") #insert your e-mail
+
+password = driver.find_element_by_name("PASSWORD")
+password.clear()
+password.send_keys("") #insert your password
+
+driver.find_element_by_id("btnSubmit").click()
+
+time.sleep(10)
+driver.refresh()
+
+time.sleep(10)
+content = driver.page_source
+soup = BeautifulSoup(content)
+
+p=datetime.timedelta(seconds=1)
+now=date.today()
+dias=['01','02','03','04','05','06','07','08','09','10','11','12','13','14','15','16','17','18','19','20','21','22','23','24','25','26','27','28','29','30','31']
+data=[]
+hoje = int(date.today().strftime("%d"))
+name=[]
+for i in range(hoje):
+    for k in range(9):
+        nome=soup.find(id='dia_2020-'+now.strftime("%m")+'-'+dias[i]+'_marcacao_'+str(k))
+        if nome != None:
+            name.append(dias[i]+'/'+now.strftime("%m")+'/2020 '+nome.text[0:5])
+
+
+for i in range(len(name)):
+    data.append(datetime.datetime.strptime(name[i], '%d/%m/%Y %H:%M'))
+
+data.sort(reverse=True)
+
+tempo_teste=[]
+data.append(datetime.datetime.strptime('29/02/2020 15:15', '%d/%m/%Y %H:%M'))
+k=0
+ab=0
+for i in range(len(data)-1):
+    if data[k].strftime("%d") == data[k+1].strftime("%d"):
+        ab = int(ab) + int((data[k]-data[k+1])/(p*3600))
+        tempo_teste.append(round(((data[k]-data[k+1])/p)/3600,2))
+        if round(((data[k]-data[k+1])/p)/3600,2) < 1 and ab > 8:
+            print('Você fez menos de uma hora de intervalo no dia '+data[k].strftime("%d")+' e mais de 8 horas de trabalho, favor verificar o ponto')
+        k=k+1
+    else:
+        ab=0
+        k=k+1
